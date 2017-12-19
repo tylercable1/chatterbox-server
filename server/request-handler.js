@@ -18,10 +18,12 @@ var defaultCorsHeaders = {
   'access-control-max-age': 10 // Seconds.
 };
 
+var results = [];
+var counter = 0;
+
 var requestHandler = function(request, response) {
-  var results = [];
   //JSON.parse(request);
-  var endResponse = JSON.stringify({results: results});
+  var endResponse = {results: results};
 
   // The outgoing status.
   var statusCode = 200;
@@ -34,27 +36,36 @@ var requestHandler = function(request, response) {
   //
   // You will need to change this if you are sending something
   // other than plain text, like JSON or HTML.
-  headers['Content-Type'] = 'application/JSON';
+  headers['Content-Type'] = 'application/json';
  
   if (request.method === 'GET') {
-    console.log('Get Request');
-    
-    response.end(endResponse);
+    console.log(endResponse);
+    response.writeHead(statusCode, headers);
+    response.end(JSON.stringify(endResponse));
   }
-
+  if (request.method === 'OPTIONS') {
+    response.writeHead(statusCode, headers);
+    response.end(JSON.stringify(endResponse));
+  }
   if (request.method === 'POST') {
+    var body = [];
+    statusCode = 201;
     request.on('data', function(data) {
-      results.push(data);
+      body.push(data);
       // console.log('working?');
     });
     
     request.on('end', function() {
-      statusCode = 201;
+      
       // console.log('reaching??');
-      results = Buffer.concat(results).toString();
+      body = Buffer.concat(body).toString();
+      body = JSON.parse(body);
+      counter++;
+      body.objectId = counter;
+      results.push(body);
       console.log(results);
       response.writeHead(statusCode, headers['content-type']);
-      response.end('message received');
+      response.end(JSON.stringify(endResponse));
     });
 
 
