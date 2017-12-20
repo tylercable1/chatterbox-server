@@ -22,7 +22,6 @@ var results = [];
 var counter = 0;
 
 var requestHandler = function(request, response) {
-  //JSON.parse(request);
   var endResponse = {results: results};
 
   // The outgoing status.
@@ -37,9 +36,15 @@ var requestHandler = function(request, response) {
   // You will need to change this if you are sending something
   // other than plain text, like JSON or HTML.
   headers['Content-Type'] = 'application/json';
+
+  if (request.url !== '/classes/messages') {
+    statusCode = 404;
+    response.writeHead(statusCode, headers);
+    response.end('File not found');
+  }
  
   if (request.method === 'GET') {
-    console.log(endResponse);
+    //console.log(endResponse);
     response.writeHead(statusCode, headers);
     response.end(JSON.stringify(endResponse));
   }
@@ -52,18 +57,15 @@ var requestHandler = function(request, response) {
     statusCode = 201;
     request.on('data', function(data) {
       body.push(data);
-      // console.log('working?');
+      
     });
     
     request.on('end', function() {
-      
-      // console.log('reaching??');
-      body = Buffer.concat(body).toString();
+      //body = Buffer.concat(body).toString();
       body = JSON.parse(body);
       counter++;
       body.objectId = counter;
       results.push(body);
-      console.log(results);
       response.writeHead(statusCode, headers['content-type']);
       response.end(JSON.stringify(endResponse));
     });
@@ -71,8 +73,6 @@ var requestHandler = function(request, response) {
 
   }
   
-  // url: '/favicon.ico',
-  // method: 'GET',
 
 
   // Request and Response come from node's http module.
